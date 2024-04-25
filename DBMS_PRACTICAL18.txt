@@ -1,0 +1,416 @@
+1) 
+CREATE DATABASE STUDENT;
+USE STUDENT;
+
+CREATE TABLE student (
+    -> Roll_No int Primary Key,
+    -> Name varchar(200),
+    -> DOB varchar(200),
+    -> Branch varchar(200),
+    -> Semester int,
+    -> Address varchar(200),
+    -> Year_of_Admission int );
+
+INSERT INTO STUDENT (Roll_No,Name,DOB,Branch,Semester,Address,Year_of_Admission) VALUES 
+(1,'Harsh','6 Oct 2003','Comps',4,'Mumbai',2022),
+(2,'Radha','31 March 2004','EXTC',4,'Sion',2023),
+(3,'Vishnu','01/01/2008','EXTC',5,'Chunnabhati',2015),
+(4,'Yadnesh','16/12/2003','IT',5,'Aurangabad',2015);
+
+SELECT Name FROM STUDENT WHERE Branch='EXTC' AND DOB='01/01/2008';
+SELECT Name,Roll_No FROM STUDENT WHERE Year_of_Admission=2015;
+SELECT Name,Address FROM STUDENT WHERE Branch='Comps' AND Semester=5;
+SELECT COUNT(*) AS Total_IT_Students FROM STUDENT WHERE Brach='IT';
+
+2) 
+CREATE DATABASE COMPANY;
+USE COMPANY;
+
+ CREATE TABLE EMPLOYEE (
+    -> empno int PRIMARY KEY,
+    -> ename varchar(200),
+    -> deptno int,
+    -> job varchar(200),
+    -> hiredate int,
+    -> FOREIGN KEY (deptno) REFERENCES DEPARTMENT (deptno) );
+
+CREATE TABLE DEPARTMENT (
+    -> deptno int PRIMARY KEY,
+    -> dname varchar(200),
+    -> loc varchar(200) );
+
+ALTER TABLE EMPLOYEE MODIFY COLUMN ename varchar(200) NOT NULL;
+ALTER TABLE EMPLOYEE MODIFY COLUMN job varchar(200) CHECK(job = UPPER(job));
+ALTER TABLE Employee MODIFY COLUMN hiredate DATE DEFAULT (CURRENT_DATE);
+ALTER TABLE DEPARTMENT MODIFY COLUMN dname varchar(200) NOT NULL;
+ALTER TABLE DEPARTMENT MODIFY COLUMN loc varchar(200) NOT NULL;
+ALTER TABLE DEPARTMent MODIFY COLUMN loc varchar(200) NOT NULL DEFAULT 'Mumbai';
+
+
+3)
+SELECT ename,job FROM EMPLOYEE WHERE deptno=20;
+SELECT * FROM EMPLOYEE WHERE deptno =30;
+SELECT * FROM EMPLOYEE WHERE empno > 104;
+SELECT * FROM EMPLOYEE WHERE job='Manager' AND deptno <> 10;
+SELECT COUNT(*) AS Total_Emp FROM EMPLOYEE;
+
+4) 
+SELECT COUNT(*) AS Total_Clerks FROM EMPLOYEE WHERE job='CLERK' AND hiredate > '2001-01-13';
+SELECT deptno, job, COUNT(*) AS employee_count FROM Employee GROUP BY deptno, job HAVING employee_count > 2;
+SELECT deptno FROM EMPLOYEE WHERE job='CLERK' GROUP BY deptno HAVING
+COUNT(*) >=2;
+SELECT ename,job FROM EMPLOYEE WHERE job= (SELECT job FROM EMPLOYEE WHERE ename = 'Allen') AND ename <> 'Allen';
+SELECT ename,job FROM EMPLOYEE WHERE deptno IN ( SELECT deptno FROM D
+EPARTMENT WHERE loc = 'Chicago' );
+
+5)
+SELECT * FROM EMPLOYEE WHERE deptno BETWEEN 10 AND 20;
+SELECT * FROM EMPLOYEE WHERE ename LIKE 'J%';
+SELECT * FROM EMPLOYEE WHERE ename IN ('Smith', 'Blake', 'Allen', 'Scott', 'Clark', 'King');
+CREATE VIEW Emp_details AS
+SELECT e.ename,e.job,e.salary,d.dname AS dept_name 
+FROM EMPLOYEE e 
+JOIN DEPARTMENT d ON e.deptno = d.deptno;   / SELECT * FROM Emp_details;
+DROP VIEW Emp_details;
+
+6) 
+SELECT * FROM EMPLOYEE WHERE salary > (SELECT MAX(salary) FROM EMPLOYEE WHERE deptno=30);
+SELECT * FROM EMPLOYEE ORDER BY ename ASC;
+SELECT * FROM EMPLOYEE ORDER BY deptno ASC, salary DESC;
+SELECT e.* FROM EMPLOYEE e JOIN DEPARTMENT d ON e.deptno = d.deptno WHERE d.loc LIKE 'L%'; 
+SELECT deptno , MIN(salary) FROM EMPLOYEE WHERE job='Manager' GROUP BY deptno;
+
+7) 
+ CREATE TABLE Person (
+    ->     driver_id INT PRIMARY KEY,
+    ->     name VARCHAR(100),
+    ->     address VARCHAR(200)
+    -> );
+CREATE TABLE owns (
+    ->     driver_id INT,
+    ->     license VARCHAR(20),
+    ->     FOREIGN KEY (driver_id) REFERENCES Person(driver_id)
+    -> );
+ CREATE TABLE Person_Owns (
+    ->     driver_id INT,
+    ->     license VARCHAR(20),
+    ->     PRIMARY KEY(driver_id, license),
+    ->     FOREIGN KEY (driver_id) REFERENCES Person(driver_id)
+    -> );
+
+CREATE TABLE Accident (
+    -> Report_No int PRIMARY KEY,
+    -> Date DATE,
+    -> Location varchar(200) );
+ INSERT INTO Accident (Report_No, Date , Location )
+    -> VALUES (1,'2023-04-25','Sion');
+
+DELETE o
+FROM owns o
+JOIN Person p ON o.driver_id = p.driver_id
+JOIN car c ON o.license = c.license
+WHERE p.name = 'Sachin Parker' AND c.model = 'SKODA';
+or
+DELETE FROM owns
+WHERE license = (
+    SELECT o.license
+    FROM owns o
+    JOIN Person p ON o.driver_id = p.driver_id
+    JOIN car c ON o.license = c.license
+    WHERE p.name = 'Sachin Parker' AND c.model = 'SKODA');
+
+ SELECT COUNT(DISTINCT o.driver_id) FROM owns o
+    -> JOIN car c ON o.license = c.license
+    -> WHERE c.year = 1999;
+
+SELECT * FROM Person WHERE name LIKE 'S%' ORDER BY driver_id DESC;
+
+8)
+SELECT e.employee_name FROM works e 
+WHERE e.salary > (SELECT MAX(f.salary) FROM works f WHERE f.company_name ='Small Bank
+Corporation');
+
+SELECT employee_name FROM works WHERE company_name <> 'FIRST Bank Cor
+poration' ;
+
+SELECT e.employee_name FROM works e 
+WHERE e.salary > ( SELECT AVG(f.salary) FROM works f 
+WHERE f.company_name=e.company_name);
+
+ SELECT employee_name FROM works WHERE company_name ='First Bank Corpo
+ration';
+
+9)
+SELECT * FROM employee WHERE ename LIKE 'J_N%';
+SELECT * FROM employee WHERE commission IS NULL;
+SELECT * FROM employee WHERE salary > (SELECT AVG(salary) FROM employee);
+SELECT deptno, AVG(salary), MIN(salary), MAX(salary) FROM EMPLOYEE GROUP BY deptno;
+CREATE VIEW dept_salary_sum AS
+SELECT deptno, SUM(salary) AS total_salary
+FROM employee
+GROUP BY deptno;
+
+10)
+SELECT p.pid, s.sname
+FROM Parts p
+JOIN Catalog c ON p.pid = c.pid
+JOIN Suppliers s ON c.sid = s.sid
+WHERE (c.cost, c.pid) IN (
+    SELECT MAX(c2.cost), c2.pid
+    FROM Catalog c2
+    GROUP BY c2.pid );
+
+SELECT s.sid
+FROM Suppliers s
+JOIN Catalog c ON s.sid = c.sid
+JOIN Parts p ON c.pid = p.pid
+GROUP BY s.sid
+HAVING COUNT(DISTINCT p.color) = 1
+  AND MAX(p.color) = 'red';
+
+SELECT DISTINCT s.sid
+FROM Suppliers s
+JOIN Catalog c ON s.sid = c.sid
+JOIN Parts p ON c.pid = p.pid
+WHERE p.color = 'red'
+  AND s.sid IN (
+    SELECT s2.sid
+    FROM Suppliers s2
+    JOIN Catalog c2 ON s2.sid = c2.sid
+    JOIN Parts p2 ON c2.pid = p2.pid
+    WHERE p2.color = 'green'
+  );
+
+SELECT s.sname
+FROM Suppliers s
+JOIN Catalog c ON s.sid = c.sid
+JOIN Parts p ON c.pid = p.pid
+WHERE p.color = 'red'
+GROUP BY s.sname
+HAVING COUNT(DISTINCT c.pid) = (
+    SELECT COUNT(DISTINCT p2.pid)
+    FROM Parts p2
+    WHERE p2.color = 'red'
+);
+
+SELECT p.pname
+FROM Parts p
+JOIN Catalog c ON p.pid = c.pid
+JOIN Suppliers s ON c.sid = s.sid
+WHERE s.sname = 'Acme Widget Suppliers'
+  AND p.pid NOT IN (
+    SELECT c2.pid
+    FROM Catalog c2
+    JOIN Suppliers s2 ON c2.sid = s2.sid
+    WHERE s2.sname <> 'Acme Widget Suppliers'
+  );
+
+11)
+12)
+CREATE TABLE customer (
+    ->     acc_no INT PRIMARY KEY,
+    ->     cust_name VARCHAR(100),
+    ->     avail_balance INT );
+CREATE TABLE mini_statement (
+    ->     acc_no INT,
+    ->     avail_balance DECIMAL(10, 2),
+    ->     statement_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP );
+INSERT INTO customer (acc_no, cust_name, avail_balance) VALUES
+    ->     (1000, 'Fanny', 7000),
+    ->     (1001, 'Peter', 12000);
+create trigger t1 before update on customer for each row INSERT INTO
+    -> mini_statement VALUES (old.acc_no,old.avail_balance);
+UPDATE customer SET avail_balance= 100 WHERE cust_name ='Fanny';
+SELECT * FROM mini_statement;
+# will show before updated value.
+create trigger t2 after update on customer for each row insert into 
+    -> mini_statement values (new.acc_no, new.avail_balance);
+UPDATE customer SET avail_balance= 100 WHERE cust_name ='Fanny';
+SELECT * FROM mini_statement;
+# will show after updated value.
+
+13)
+-- Step 3: Begin a transaction
+BEGIN;
+
+-- Step 4: Update the balance of all 3 customers
+UPDATE customer SET balance = balance + 1000 WHERE cust_id = 1;  -- Add 1000 to Alice's balance
+UPDATE customer SET balance = balance + 500 WHERE cust_id = 2;   -- Add 500 to Bob's balance
+UPDATE customer SET balance = balance + 2000 WHERE cust_id = 3;  -- Add 2000 to Charlie's balance
+
+-- Step 5: Create a savepoint after the first set of updates
+SAVEPOINT first_update;
+
+-- Step 6: Further updates, but with an intention to rollback
+UPDATE customer SET balance = balance - 500 WHERE cust_id = 1;  -- Subtract 500 from Alice's balance
+UPDATE customer SET balance = balance - 1000 WHERE cust_id = 2; -- Subtract 1000 from Bob's balance
+
+-- Let's view the changes before committing or rolling back
+SELECT * FROM customer;
+
+-- Step 7: Rollback to the first savepoint
+ROLLBACK TO first_update;
+
+-- Verify the state after rollback
+SELECT * FROM customer;
+
+-- Step 8: Commit the transaction
+COMMIT;
+
+-- Verify the state after commit
+SELECT * FROM customer;
+
+14)
+-- Begin a transaction
+BEGIN;
+
+-- Update the percentage of all three students
+UPDATE student SET percentage = percentage + 5.0 WHERE student_id = 1;  -- Increase Alice's percentage by 5.0
+UPDATE student SET percentage = percentage + 10.0 WHERE student_id = 2; -- Increase Bob's percentage by 10.0
+UPDATE student SET percentage = percentage + 15.0 WHERE student_id = 3; -- Increase Charlie's percentage by 15.0
+
+-- Create a savepoint to mark this stage in the transaction
+SAVEPOINT first_savepoint;
+
+-- Update the percentage of all three students again
+UPDATE student SET percentage = percentage - 2.0 WHERE student_id = 1;  -- Decrease Alice's percentage by 2.0
+UPDATE student SET percentage = percentage - 5.0 WHERE student_id = 2;  -- Decrease Bob's percentage by 5.0
+UPDATE student SET percentage = percentage - 8.0 WHERE student_id = 3;  -- Decrease Charlie's percentage by 8.0
+
+-- Let's check the changes made in the transaction
+SELECT * FROM student;
+-- Rollback to the 'first_savepoint'
+ROLLBACK TO first_savepoint;
+
+-- Check the changes after rollback to the savepoint
+SELECT * FROM student;
+-- Commit the transaction to finalize the changes
+COMMIT;
+
+-- Verify the final state of the 'student' table
+SELECT * FROM student;
+
+15)
+SELECT e.employee_name, e.street, e.city, w.salary
+FROM employee e
+JOIN works w ON e.employee_name = w.employee_name
+WHERE w.company_name = 'Infosys';
+
+SELECT UPPER(employee_name) AS employee_name_uppercase FROM employee;
+
+UPDATE works SET company_name = 'TCS' WHERE company_name = 'Infosys';
+
+SELECT w.employee_name, m.manager_name
+FROM works w
+JOIN manages m ON w.employee_name = m.employee_name
+WHERE w.company_name = 'TCS';
+
+SELECT * FROM employee WHERE employee_name LIKE 'P%';
+
+16) 
+SELECT
+  b.book_id,
+  b.title,
+  a.author_name,
+  g.genre_name,
+  b.price
+FROM
+  books b
+  JOIN authors a ON b.author_id = a.author_id
+  JOIN genres g ON b.genre_id = g.genre_id;
+
+SELECT
+  c.customer_id,
+  c.name AS customer_name,
+  SUM(o.total_amount) AS total_spent
+FROM
+  customers c
+  JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY
+  c.customer_id, c.name;
+
+SELECT
+  c.customer_id,
+  c.name AS customer_name,
+  b.title AS book_title
+FROM
+  customers c
+  JOIN orders o ON c.customer_id = o.customer_id
+  JOIN order_details od ON o.order_id = od.order_id
+  JOIN books b ON od.book_id = b.book_id;
+
+SELECT
+  a.author_id,
+  a.author_name,
+  SUM(od.quantity) AS total_books_sold
+FROM
+  order_details od
+  JOIN books b ON od.book_id = b.book_id
+  JOIN authors a ON b.author_id = a.author_id
+GROUP BY
+  a.author_id, a.author_name
+ORDER BY
+  total_books_sold DESC;
+
+17) 
+CREATE DATABASE hostel;
+USE hostel;
+CREATE TABLE books (
+    ->     book_id INT PRIMARY KEY,
+    ->     title VARCHAR(255),
+    ->     author_id INT,
+    ->     genre_id INT,
+    ->     price DECIMAL(10, 2) );
+CREATE TABLE customers (
+    ->     customer_id INT PRIMARY KEY,
+    ->     name VARCHAR(255),
+    ->     email VARCHAR(255),
+    ->     city VARCHAR(100) );
+
+CREATE USER 'bookstore_manager'@'localhost' IDENTIFIED BY 'HARSH';
+GRANT SELECT ON hostel.books TO 'bookstore_manager'@'localhost';
+GRANT INSERT, UPDATE, DELETE ON hostel.customers TO 'bookstore_manager'@'localhost';
+
+GRANT CREATE,ALTER,DROP,INSERT,UPDATE,DELETE,SELECT on hosteldb.* TO 'bookstore_manager'@'localhost';
+Revoke ALTER,DELETE on hosteldb.* from 'bookstore_manager'@'localhost';
+Drop USER 'bookstore_manager'@'localhost';
+
+18)
+-- Begin the transaction
+BEGIN;
+
+-- Step 1: Insert into 'orders' table
+INSERT INTO orders (order_id, customer_id, order_date, total_amount)
+VALUES (100, 1, '2024-05-01', 100.00);
+
+-- Step 2: Insert into 'order_details' table (individual order items)
+INSERT INTO order_details (order_detail_id, order_id, book_id, quantity, subtotal)
+VALUES
+    (1, 100, 1, 1, 30.00),  -- Book 1, quantity 1, subtotal 30.00
+    (2, 100, 2, 2, 40.00),  -- Book 2, quantity 2, subtotal 40.00
+    (3, 100, 3, 1, 30.00);  -- Book 3, quantity 1, subtotal 30.00
+
+-- Step 3: Validate the total amount
+-- Calculate the total of all subtotals for the given order
+SELECT SUM(subtotal) INTO @calculated_total
+FROM order_details
+WHERE order_id = 100;
+
+-- Step 4: Check if the calculated total matches the total_amount
+-- If it doesn't match, rollback the transaction
+IF @calculated_total != 100.00 THEN
+    ROLLBACK;
+    SELECT 'Transaction Rolled Back: Total does not match the sum of subtotals' AS Message;
+ELSE
+    -- If validation succeeds, commit the transaction
+    COMMIT;
+    SELECT 'Transaction Committed Successfully' AS Message;
+END IF;
+
+
+
+
+
+
+
+
